@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSION Ferienhaus Funnel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; min-height: 100%; }
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0a0a0c;
+            color: #fff;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Container */
+        .funnel-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: 600px;
+        }
+
+        /* Progress */
+        .progress-wrap { margin-bottom: 32px; }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .progress-text {
+            font-size: 13px;
+            color: rgba(255,255,255,0.75);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+        .progress-percent {
+            font-size: 13px;
+            color: #8b5cf6;
+            font-weight: 600;
+        }
+        .progress-bar {
+            height: 4px;
+            background: #1c1c22;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f43f5e, #8b5cf6);
+            border-radius: 999px;
+            transition: width 0.35s ease;
+            box-shadow: 0 0 12px rgba(139,92,246,0.4);
+        }
+
+        /* Header */
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(244,63,94,0.1));
+            border: 1px solid rgba(139,92,246,0.2);
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #c7b2ff;
+            margin-bottom: 16px;
+        }
+        .question-title {
+            font-size: clamp(24px, 5vw, 32px);
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+        .question-subtitle {
+            font-size: 16px;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 28px;
+        }
+
+        /* Options */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .option-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: #141418;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .option-card:hover {
+            background: #1c1c22;
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+        }
+        .option-card.selected {
+            background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(244,63,94,0.08));
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 1px rgba(139,92,246,0.3), 0 8px 32px rgba(139,92,246,0.2);
+        }
+        .option-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .option-letter {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            transition: all 0.25s ease;
+        }
+        .option-card:hover .option-letter {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.75);
+        }
+        .option-card.selected .option-letter {
+            background: #8b5cf6;
+            color: white;
+        }
+        .option-label {
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .option-indicator {
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+        }
+        .option-card:hover .option-indicator {
+            border-color: rgba(255,255,255,0.4);
+        }
+        .option-card.selected .option-indicator {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+        }
+        .check-icon {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 3;
+            fill: none;
+        }
+
+        /* Footer */
+        .funnel-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.75);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+        .back-btn:hover:not(:disabled) {
+            background: #141418;
+            border-color: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .back-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .keyboard-hint {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Results Page */
+        .results-page { display: none; }
+        .results-page.active { display: block; }
+        .results-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(244,63,94,0.1));
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #c7b2ff;
+            margin-bottom: 20px;
+        }
+        .results-title {
+            font-size: clamp(28px, 6vw, 36px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #c7b2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .results-subtitle {
+            font-size: 16px;
+            color: rgba(255,255,255,0.75);
+        }
+
+        /* Diagnosis Cards */
+        .diagnosis-primary {
+            background: linear-gradient(135deg, #141418, #1c1c22);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .diagnosis-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f43f5e, #8b5cf6);
+        }
+        .diagnosis-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            background: rgba(139,92,246,0.15);
+            color: #8b5cf6;
+        }
+        .diagnosis-title {
+            font-size: clamp(20px, 4vw, 26px);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .diagnosis-desc {
+            font-size: 15px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        .diagnosis-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(139,92,246,0.15);
+            border: 1px solid rgba(139,92,246,0.3);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #c7b2ff;
+        }
+
+        /* Secondary Diagnosis */
+        .secondary-wrap { margin-bottom: 24px; }
+        .secondary-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 10px;
+        }
+        .secondary-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: #141418;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-left: 3px solid var(--accent, #8b5cf6);
+            border-radius: 12px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.75);
+        }
+
+        /* Score Grid */
+        .score-section { margin-bottom: 24px; }
+        .score-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 16px;
+        }
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .score-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: #141418;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+        }
+        .score-card.primary {
+            background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(244,63,94,0.05));
+            border-color: rgba(139,92,246,0.3);
+        }
+        .score-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+        .score-content { display: flex; flex-direction: column; gap: 2px; }
+        .score-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255,255,255,0.5);
+        }
+        .score-value {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        /* CTA Section */
+        .cta-section { margin-bottom: 24px; }
+        .cta-card {
+            background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(244,63,94,0.08));
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 24px;
+            padding: 28px;
+            text-align: center;
+        }
+        .cta-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .cta-card p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #f43f5e, #8b5cf6);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+            text-decoration: none;
+            font-family: inherit;
+        }
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139,92,246,0.4);
+        }
+        .restart-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            color: rgba(255,255,255,0.75);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+        .restart-btn:hover {
+            background: #141418;
+            border-color: rgba(255,255,255,0.15);
+            color: white;
+        }
+
+        /* Question Page */
+        .question-page.hidden { display: none; }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .funnel-container { padding: 20px 16px; }
+            .score-grid { grid-template-columns: repeat(2, 1fr); }
+            .diagnosis-primary { padding: 20px; }
+            .diagnosis-icon { width: 60px; height: 60px; }
+            .cta-card { padding: 20px; }
+            .keyboard-hint { display: none; }
+        }
+        @media (max-width: 480px) {
+            .score-grid { grid-template-columns: 1fr; }
+            .score-card { flex-direction: row; }
+        }
+
+        /* Focus accessibility */
+        .option-card:focus-visible,
+        .back-btn:focus-visible,
+        .cta-btn:focus-visible,
+        .restart-btn:focus-visible {
+            outline: 2px solid #8b5cf6;
+            outline-offset: 2px;
+        }
+
+        /* Animation for selection */
+        @keyframes selectPulse {
+            0% { box-shadow: 0 0 0 0 rgba(139,92,246,0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(139,92,246,0); }
+            100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+        }
+        .option-card.selected {
+            animation: selectPulse 0.6s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="funnel-container">
+        <!-- Question Page -->
+        <div class="question-page" id="questionPage">
+            <div class="progress-wrap">
+                <div class="progress-header">
+                    <span class="progress-text">Frage <span id="currentStep">1</span> von 8</span>
+                    <span class="progress-percent" id="progressPercent">12%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 12.5%"></div>
+                </div>
+            </div>
+
+            <div class="category-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                Ferienhaus-Check
+            </div>
+
+            <h1 class="question-title" id="questionTitle">Wie ist die aktuelle Auslastung?</h1>
+            <p class="question-subtitle" id="questionSubtitle">Ehrliche Einschätzung hilft bei der Analyse</p>
+
+            <div class="options-list" id="optionsList"></div>
+
+            <div class="funnel-footer">
+                <button class="back-btn" id="backBtn" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                    Zurück
+                </button>
+                <span class="keyboard-hint">↑↓ zum Navigieren • Enter zum Bestätigen</span>
+            </div>
+        </div>
+
+        <!-- Results Page -->
+        <div class="results-page" id="resultsPage">
+            <div class="results-header">
+                <div class="brand-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    OSION Analyse
+                </div>
+                <h1 class="results-title">Deine Diagnose</h1>
+                <p class="results-subtitle">Basierend auf deinen 8 Antworten</p>
+            </div>
+
+            <div class="diagnosis-primary">
+                <div class="diagnosis-icon" id="primaryIcon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                </div>
+                <h2 class="diagnosis-title" id="primaryTitle">Hauptdiagnose</h2>
+                <p class="diagnosis-desc" id="primaryDesc">Beschreibung...</p>
+                <div class="diagnosis-action">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    <span id="primaryAction">Empfohlene Aktion</span>
+                </div>
+            </div>
+
+            <div class="secondary-wrap" id="secondaryWrap" style="display: none;">
+                <span class="secondary-label">Auch relevant:</span>
+                <div class="secondary-card" id="secondaryCard" style="--accent: #8b5cf6;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                    <span id="secondaryTitle">Sekundäre Diagnose</span>
+                </div>
+            </div>
+
+            <div class="score-section">
+                <h3 class="score-title">Detaillierte Auswertung</h3>
+                <div class="score-grid">
+                    <div class="score-card" id="scoreOccupancy">
+                        <div class="score-icon" style="background: rgba(244,63,94,0.2); color: #f43f5e;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        </div>
+                        <div class="score-content">
+                            <span class="score-label">Auslastung</span>
+                            <span class="score-value" id="valOccupancy">0</span>
+                        </div>
+                    </div>
+                    <div class="score-card" id="scoreVisibility">
+                        <div class="score-icon" style="background: rgba(139,92,246,0.2); color: #8b5cf6;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </div>
+                        <div class="score-content">
+                            <span class="score-label">Sichtbarkeit</span>
+                            <span class="score-value" id="valVisibility">0</span>
+                        </div>
+                    </div>
+                    <div class="score-card" id="scoreOffer">
+                        <div class="score-icon" style="background: rgba(245,158,11,0.2); color: #f59e0b;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a16 16 0 0 1-10.89 13.99L3 21l1.01-7.11A16 16 0 0 1 21 8Z"/></svg>
+                        </div>
+                        <div class="score-content">
+                            <span class="score-label">Angebot</span>
+                            <span class="score-value" id="valOffer">0</span>
+                        </div>
+                    </div>
+                    <div class="score-card" id="scorePricing">
+                        <div class="score-icon" style="background: rgba(16,185,129,0.2); color: #10b981;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <div class="score-content">
+                            <span class="score-label">Preise</span>
+                            <span class="score-value" id="valPricing">0</span>
+                        </div>
+                    </div>
+                    <div class="score-card" id="scoreStrategy">
+                        <div class="score-icon" style="background: rgba(99,102,241,0.2); color: #6366f1;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                        </div>
+                        <div class="score-content">
+                            <span class="score-label">Strategie</span>
+                            <span class="score-value" id="valStrategy">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <div class="cta-card">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #8b5cf6; margin-bottom: 16px;"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    <h3>Kostenloser Handlungsplan</h3>
+                    <p>Erhalte einen personalisierten Plan mit konkreten nächsten Schritten für dein Ferienhaus.</p>
+                    <a href="https://osion-solution.com/ferienhaus-optimierung" class="cta-btn" target="_blank">
+                        <span>Plan anfordern</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <button class="restart-btn" id="restartBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                Analyse wiederholen
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const questions = [
+            {
+                id: 'occupancy',
+                title: 'Wie ist die aktuelle Auslastung?',
+                subtitle: 'Ehrliche Einschätzung hilft bei der Analyse',
+                options: [
+                    { label: 'Unter 30 %', score: { occupancy: 3, visibility: 0, offer: 0, pricing: 0, strategy: 1 } },
+                    { label: '30–50 %', score: { occupancy: 2, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: '50–70 %', score: { occupancy: 1, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Über 70 %', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Weiß ich nicht', score: { occupancy: 2, visibility: 0, offer: 0, pricing: 0, strategy: 2 } },
+                ]
+            },
+            {
+                id: 'problem',
+                title: 'Was ist das größte Problem?',
+                subtitle: 'Wo tut es aktuell am meisten weh?',
+                options: [
+                    { label: 'Zu wenig Buchungen', score: { occupancy: 2, visibility: 1, offer: 1, pricing: 0, strategy: 1 } },
+                    { label: 'Zu wenig Anfragen', score: { occupancy: 1, visibility: 3, offer: 1, pricing: 0, strategy: 1 } },
+                    { label: 'Zu niedrige Preise', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 3, strategy: 1 } },
+                    { label: 'Zu viele Lücken', score: { occupancy: 3, visibility: 0, offer: 0, pricing: 1, strategy: 1 } },
+                    { label: 'Weiß ich nicht', score: { occupancy: 1, visibility: 1, offer: 1, pricing: 1, strategy: 3 } },
+                ]
+            },
+            {
+                id: 'channels',
+                title: 'Über welche Kanäle kommen Buchungen?',
+                subtitle: 'Wie verteilt sich dein Umsatz?',
+                options: [
+                    { label: 'Hauptsächlich Airbnb', score: { occupancy: 0, visibility: 1, offer: 1, pricing: 0, strategy: 0 } },
+                    { label: 'Hauptsächlich Booking.com', score: { occupancy: 0, visibility: 1, offer: 1, pricing: 0, strategy: 0 } },
+                    { label: 'Airbnb + Booking.com', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Direktbuchungen/Webseite', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Keine klare Strategie', score: { occupancy: 1, visibility: 2, offer: 1, pricing: 0, strategy: 3 } },
+                ]
+            },
+            {
+                id: 'visibility',
+                title: 'Wie gut wird dein Haus gefunden?',
+                subtitle: 'Suchergebnisse, Ranking, Erkennbarkeit',
+                options: [
+                    { label: 'Sehr schlecht', score: { occupancy: 1, visibility: 3, offer: 0, pricing: 0, strategy: 1 } },
+                    { label: 'Mittelmäßig', score: { occupancy: 0, visibility: 2, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Ganz gut', score: { occupancy: 0, visibility: 1, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Sehr gut', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Kann ich nicht einschätzen', score: { occupancy: 0, visibility: 2, offer: 0, pricing: 0, strategy: 2 } },
+                ]
+            },
+            {
+                id: 'offer',
+                title: 'Wie wirkt dein Inserat?',
+                subtitle: 'Im Vergleich zu anderen Ferienhäusern',
+                options: [
+                    { label: 'Eher schwach', score: { occupancy: 1, visibility: 1, offer: 3, pricing: 0, strategy: 1 } },
+                    { label: 'Durchschnittlich', score: { occupancy: 0, visibility: 0, offer: 2, pricing: 0, strategy: 0 } },
+                    { label: 'Ganz gut', score: { occupancy: 0, visibility: 0, offer: 1, pricing: 0, strategy: 0 } },
+                    { label: 'Sehr professionell', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Kein Vergleich', score: { occupancy: 0, visibility: 1, offer: 2, pricing: 0, strategy: 2 } },
+                ]
+            },
+            {
+                id: 'pricing',
+                title: 'Wie sicher bist du bei Preisen?',
+                subtitle: 'Preisstrategie und Anpassung',
+                options: [
+                    { label: 'Sehr unsicher', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 3, strategy: 1 } },
+                    { label: 'Orientiere mich an anderen', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 2, strategy: 0 } },
+                    { label: 'Passe gelegentlich an', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 1, strategy: 0 } },
+                    { label: 'Durchdachte Strategie', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Weiß nicht, ob richtig', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 2, strategy: 2 } },
+                ]
+            },
+            {
+                id: 'goal',
+                title: 'Was ist dein wichtigstes Ziel?',
+                subtitle: 'Priorität für die nächsten Monate',
+                options: [
+                    { label: 'Mehr Buchungen', score: { occupancy: 2, visibility: 1, offer: 1, pricing: 0, strategy: 0 } },
+                    { label: 'Höhere Auslastung', score: { occupancy: 3, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Bessere Preise', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 3, strategy: 0 } },
+                    { label: 'Weniger Leerstand', score: { occupancy: 2, visibility: 1, offer: 0, pricing: 1, strategy: 0 } },
+                    { label: 'Bessere Gesamtstrategie', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 3 } },
+                ]
+            },
+            {
+                id: 'urgency',
+                title: 'Wie dringend ist eine Verbesserung?',
+                subtitle: 'Zeithorizont für Veränderung',
+                options: [
+                    { label: 'Sofort', score: { occupancy: 1, visibility: 1, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'In den nächsten Wochen', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'In 1–3 Monaten', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Langfristig', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+                    { label: 'Erst verstehen was möglich', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 2 } },
+                ]
+            }
+        ];
+
+        const diagnoses = {
+            occupancy: {
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>`,
+                title: 'Auslastungsproblem',
+                headline: 'Kalenderlücken bremsen dein Ferienhaus aus',
+                description: 'Dein Ferienhaus schöpft sein Potenzial nicht konstant genug aus. Die Lücken im Kalender sind der größte Umsatzkiller.',
+                action: 'Strukturierter Plan für kontinuierliche Buchungen',
+                color: '#f43f5e'
+            },
+            visibility: {
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+                title: 'Sichtbarkeitsproblem',
+                headline: 'Gäste finden dein Ferienhaus nicht',
+                description: 'Ein tolles Ferienhaus nützt nichts, wenn es nicht gefunden wird. Dein Ranking in den Plattformen braucht Optimierung.',
+                action: 'SEO-Optimierung und Ranking-Strategie',
+                color: '#8b5cf6'
+            },
+            offer: {
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a16 16 0 0 1-10.89 13.99L3 21l1.01-7.11A16 16 0 0 1 21 8Z"/></svg>`,
+                title: 'Angebotsproblem',
+                headline: 'Dein Inserat überzeugt nicht',
+                description: 'Bilder, Texte und Positionierung wirken schwächer als bei der Konkurrenz. Das kostet dich Buchungen.',
+                action: 'Professionelles Listing-Redesign',
+                color: '#f59e0b'
+            },
+            pricing: {
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+                title: 'Preisstrategieproblem',
+                headline: 'Preise passen nicht zur Nachfrage',
+                description: 'Entweder zu teuer für die Buchungslage oder zu günstig für das Potenzial. Beides kostet Umsatz.',
+                action: 'Datenbasierte Preisoptimierung',
+                color: '#10b981'
+            },
+            strategy: {
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+                title: 'Strategieproblem',
+                headline: 'Fehlender Plan für nachhaltigen Erfolg',
+                description: 'Ohne klare Strategie wird oft an Symptomen statt Ursachen gearbeitet. Das führt zu Frustration.',
+                action: 'Integrierter Handlungsplan',
+                color: '#6366f1'
+            }
+        };
+
+        const secondaryIcons = {
+            occupancy: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>`,
+            visibility: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+            offer: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a16 16 0 0 1-10.89 13.99L3 21l1.01-7.11A16 16 0 0 1 21 8Z"/></svg>`,
+            pricing: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+            strategy: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`
+        };
+
+        // State
+        let step = 0;
+        let answers = [];
+        let selectedOption = null;
+        let isTransitioning = false;
+
+        // DOM Elements
+        const els = {
+            questionPage: document.getElementById('questionPage'),
+            resultsPage: document.getElementById('resultsPage'),
+            currentStep: document.getElementById('currentStep'),
+            progressPercent: document.getElementById('progressPercent'),
+            progressBar: document.getElementById('progressBar'),
+            questionTitle: document.getElementById('questionTitle'),
+            questionSubtitle: document.getElementById('questionSubtitle'),
+            optionsList: document.getElementById('optionsList'),
+            backBtn: document.getElementById('backBtn'),
+            primaryIcon: document.getElementById('primaryIcon'),
+            primaryTitle: document.getElementById('primaryTitle'),
+            primaryDesc: document.getElementById('primaryDesc'),
+            primaryAction: document.getElementById('primaryAction'),
+            secondaryWrap: document.getElementById('secondaryWrap'),
+            secondaryCard: document.getElementById('secondaryCard'),
+            secondaryTitle: document.getElementById('secondaryTitle'),
+            restartBtn: document.getElementById('restartBtn'),
+            scoreCards: {
+                occupancy: document.getElementById('scoreOccupancy'),
+                visibility: document.getElementById('scoreVisibility'),
+                offer: document.getElementById('scoreOffer'),
+                pricing: document.getElementById('scorePricing'),
+                strategy: document.getElementById('scoreStrategy')
+            }
+        };
+
+        // Render Question
+        function renderQuestion() {
+            const q = questions[step];
+            const progress = ((step + 1) / questions.length) * 100;
+            
+            els.currentStep.textContent = step + 1;
+            els.progressPercent.textContent = Math.round(progress) + '%';
+            els.progressBar.style.width = progress + '%';
+            els.questionTitle.textContent = q.title;
+            els.questionSubtitle.textContent = q.subtitle;
+            
+            els.optionsList.innerHTML = '';
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            
+            q.options.forEach((opt, idx) => {
+                const card = document.createElement('div');
+                card.className = 'option-card' + (selectedOption === idx ? ' selected' : '');
+                card.innerHTML = `
+                    <div class="option-content">
+                        <span class="option-letter">${letters[idx]}</span>
+                        <span class="option-label">${opt.label}</span>
+                    </div>
+                    <div class="option-indicator">
+                        ${selectedOption === idx 
+                            ? '<svg class="check-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>' 
+                            : '<div></div>'}
+                    </div>
+                `;
+                card.onclick = () => selectOption(idx);
+                els.optionsList.appendChild(card);
+            });
+            
+            els.backBtn.disabled = step === 0;
+        }
+
+        // Select Option
+        function selectOption(idx) {
+            if (isTransitioning) return;
+            selectedOption = idx;
+            isTransitioning = true;
+            
+            // Re-render to show selection
+            const cards = els.optionsList.querySelectorAll('.option-card');
+            cards.forEach((card, i) => {
+                card.classList.toggle('selected', i === idx);
+                const indicator = card.querySelector('.option-indicator');
+                if (i === idx) {
+                    indicator.innerHTML = '<svg class="check-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+                }
+            });
+            
+            // Save answer and advance
+            setTimeout(() => {
+                answers[step] = { index: idx, score: questions[step].options[idx].score };
+                
+                if (step < questions.length - 1) {
+                    step++;
+                    selectedOption = answers[step]?.index ?? null;
+                    renderQuestion();
+                } else {
+                    showResults();
+                }
+                isTransitioning = false;
+            }, 400);
+        }
+
+        // Show Results
+        function showResults() {
+            els.questionPage.classList.add('hidden');
+            els.resultsPage.classList.add('active');
+            
+            // Calculate scores
+            const scores = { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 };
+            answers.forEach(ans => {
+                if (ans && ans.score) {
+                    Object.keys(scores).forEach(key => {
+                        scores[key] += ans.score[key] || 0;
+                    });
+                }
+            });
+            
+            // Sort diagnoses
+            const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+            const primaryKey = sorted[0][0];
+            const secondaryKey = sorted[1][0];
+            
+            const primary = diagnoses[primaryKey];
+            const secondary = diagnoses[secondaryKey];
+            
+            // Render primary diagnosis
+            els.primaryIcon.innerHTML = primary.icon;
+            els.primaryIcon.style.background = primary.color + '20';
+            els.primaryIcon.style.color = primary.color;
+            els.primaryTitle.textContent = primary.headline;
+            els.primaryDesc.textContent = primary.description;
+            els.primaryAction.textContent = primary.action;
+            
+            // Render secondary diagnosis
+            if (secondary && secondaryKey !== primaryKey) {
+                els.secondaryWrap.style.display = 'block';
+                els.secondaryCard.innerHTML = secondaryIcons[secondaryKey] + '<span>' + secondary.title + '</span>';
+                els.secondaryCard.style.setProperty('--accent', secondary.color);
+            } else {
+                els.secondaryWrap.style.display = 'none';
+            }
+            
+            // Update score values
+            document.getElementById('valOccupancy').textContent = scores.occupancy;
+            document.getElementById('valVisibility').textContent = scores.visibility;
+            document.getElementById('valOffer').textContent = scores.offer;
+            document.getElementById('valPricing').textContent = scores.pricing;
+            document.getElementById('valStrategy').textContent = scores.strategy;
+            
+            // Highlight primary score card
+            Object.keys(els.scoreCards).forEach(key => {
+                els.scoreCards[key].classList.toggle('primary', key === primaryKey);
+            });
+        }
+
+        // Go Back
+        function goBack() {
+            if (step === 0 || isTransitioning) return;
+            step--;
+            selectedOption = answers[step]?.index ?? null;
+            renderQuestion();
+        }
+
+        // Restart
+        function restart() {
+            step = 0;
+            answers = [];
+            selectedOption = null;
+            els.questionPage.classList.remove('hidden');
+            els.resultsPage.classList.remove('active');
+            renderQuestion();
+        }
+
+        // Event Listeners
+        els.backBtn.addEventListener('click', goBack);
+        els.restartBtn.addEventListener('click', restart);
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (els.resultsPage.classList.contains('active')) {
+                if (e.key === 'Enter') restart();
+                return;
+            }
+            
+            const options = questions[step].options.length;
+            
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const current = selectedOption ?? -1;
+                const direction = e.key === 'ArrowUp' ? -1 : 1;
+                const next = Math.max(0, Math.min(options - 1, current + direction));
+                selectedOption = next;
+                
+                // Update visual selection without triggering
+                const cards = els.optionsList.querySelectorAll('.option-card');
+                cards.forEach((card, i) => {
+                    card.classList.toggle('selected', i === next);
+                    const indicator = card.querySelector('.option-indicator');
+                    indicator.innerHTML = i === next 
+                        ? '<svg class="check-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>'
+                        : '<div></div>';
+                });
+            }
+            
+            if (e.key === 'Enter' && selectedOption !== null) {
+                selectOption(selectedOption);
+            }
+            
+            if (e.key === 'Backspace' && step > 0) {
+                e.preventDefault();
+                goBack();
+            }
+        });
+
+        // Initialize
+        renderQuestion();
+    </script>
+</body>
+</html>
