@@ -1,255 +1,285 @@
-import { useState, useMemo } from 'react'
-import { ArrowLeft, ChevronRight, Sparkles, TrendingUp, Eye, Package, DollarSign, Target } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  ArrowRight,
+  BadgeCheck,
+  BarChart3,
+  CalendarRange,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Eye,
+  Gem,
+  Rocket,
+  ShieldCheck,
+  TrendingUp,
+} from 'lucide-react'
 
-const QUESTIONS = [
+const quizQuestions = [
   {
     id: 'occupancy',
     title: 'Wie hoch ist die aktuelle Auslastung Deines Ferienhauses?',
-    subtitle: '',
     options: [
-      { label: 'Unter 30 %', score: { occupancy: 3, visibility: 0, offer: 0, pricing: 0, strategy: 1 } },
-      { label: '30–50 %', score: { occupancy: 2, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
-      { label: '50–70 %', score: { occupancy: 1, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
-      { label: 'Über 70 %', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+      { label: 'Unter 30 %', score: { visibility: 2, pricing: 2, trust: 1 } },
+      { label: '30–50 %', score: { visibility: 2, pricing: 1, trust: 1 } },
+      { label: '50–70 %', score: { visibility: 1, pricing: 1, trust: 1 } },
+      { label: 'Über 70 %', score: { visibility: 0, pricing: 0, trust: 1 } },
     ],
   },
   {
-    id: 'problem',
-    title: 'Was ist aus deiner Sicht aktuell das größte Problem?',
-    subtitle: '',
+    id: 'focus',
+    title: 'Wo verlierst Du aktuell am meisten Potenzial?',
     options: [
-      { label: 'Zu wenig Buchungen', score: { occupancy: 2, visibility: 1, offer: 1, pricing: 0, strategy: 1 } },
-      { label: 'Zu wenig Anfragen', score: { occupancy: 1, visibility: 3, offer: 1, pricing: 0, strategy: 1 } },
-      { label: 'Zu niedrige Preise', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 3, strategy: 1 } },
-      { label: 'Zu viele Lücken im Kalender', score: { occupancy: 3, visibility: 0, offer: 0, pricing: 1, strategy: 1 } },
-    ],
-  },
-  {
-    id: 'channels',
-    title: 'Über welche Kanäle kommen aktuell deine Buchungen?',
-    subtitle: '',
-    options: [
-      { label: 'Hauptsächlich Airbnb', score: { occupancy: 0, visibility: 1, offer: 1, pricing: 0, strategy: 0 } },
-      { label: 'Hauptsächlich Booking.com', score: { occupancy: 0, visibility: 1, offer: 1, pricing: 0, strategy: 0 } },
-      { label: 'Airbnb und Booking.com', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
-      { label: 'Verschiedene Kanäle, aber ohne echte Strategie', score: { occupancy: 1, visibility: 2, offer: 1, pricing: 0, strategy: 3 } },
+      { label: 'Sichtbarkeit in Portalen', score: { visibility: 3, pricing: 0, trust: 0 } },
+      { label: 'Preislogik & Aussteuerung', score: { visibility: 0, pricing: 3, trust: 0 } },
+      { label: 'Vertrauen & Positionierung', score: { visibility: 0, pricing: 0, trust: 3 } },
+      { label: 'Unklar – überall ein bisschen', score: { visibility: 1, pricing: 1, trust: 1 } },
     ],
   },
   {
     id: 'urgency',
-    title: 'Wie dringend möchtest du die Buchungssituation verbessern?',
-    subtitle: '',
+    title: 'Wie schnell willst Du Ergebnisse sehen?',
     options: [
-      { label: 'Sofort', score: { occupancy: 1, visibility: 1, offer: 0, pricing: 0, strategy: 0 } },
-      { label: 'Innerhalb der nächsten Wochen', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
-      { label: 'In den nächsten 1–3 Monaten', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
-      { label: 'Langfristig', score: { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 } },
+      { label: 'In den nächsten 30 Tagen', score: { visibility: 1, pricing: 1, trust: 1 } },
+      { label: 'Innerhalb eines Quartals', score: { visibility: 0, pricing: 1, trust: 1 } },
+      { label: 'Sauber & nachhaltig, egal wie lange', score: { visibility: 1, pricing: 0, trust: 2 } },
+      { label: 'Ich brauche erst Klarheit', score: { visibility: 2, pricing: 1, trust: 2 } },
+    ],
+  },
+  {
+    id: 'data',
+    title: 'Wie datenbasiert steuerst Du Preise und Kalender?',
+    options: [
+      { label: 'Kaum datenbasiert', score: { visibility: 0, pricing: 3, trust: 0 } },
+      { label: 'Teilweise mit Regeln', score: { visibility: 0, pricing: 2, trust: 1 } },
+      { label: 'Mit Tools, aber ohne System', score: { visibility: 1, pricing: 1, trust: 1 } },
+      { label: 'Sehr strukturiert', score: { visibility: 0, pricing: 0, trust: 0 } },
     ],
   },
 ]
 
-const DIAGNOSES = {
-  occupancy: {
-    icon: TrendingUp,
-    title: 'Auslastungsproblem',
-    headline: 'Kalenderlücken bremsen dein Ferienhaus aus',
-    description: 'Dein Ferienhaus schöpft sein Potenzial nicht konstant genug aus. Die Lücken im Kalender sind der größte Umsatzkiller.',
-    action: 'Strukturierter Plan für kontinuierliche Buchungen',
-    color: '#f43f5e',
-  },
+const clusterConfig = {
   visibility: {
+    title: 'Sichtbarkeit & Darstellung',
+    description: 'Titel, Fotos, Texte und Conversion-Elemente sind der größte Hebel.',
     icon: Eye,
-    title: 'Sichtbarkeitsproblem',
-    headline: 'Gäste finden dein Ferienhaus nicht',
-    description: 'Ein tolles Ferienhaus nützt nichts, wenn es nicht gefunden wird. Dein Ranking in den Plattformen braucht Optimierung.',
-    action: 'SEO-Optimierung und Ranking-Strategie',
-    color: '#8b5cf6',
-  },
-  offer: {
-    icon: Package,
-    title: 'Angebotsproblem',
-    headline: 'Dein Inserat überzeugt nicht',
-    description: 'Bilder, Texte und Positionierung wirken schwächer als bei der Konkurrenz. Das kostet dich Buchungen.',
-    action: 'Professionelles Listing-Redesign',
-    color: '#f59e0b',
+    colorClass: 'rose',
   },
   pricing: {
-    icon: DollarSign,
-    title: 'Preisstrategieproblem',
-    headline: 'Preise passen nicht zur Nachfrage',
-    description: 'Entweder zu teuer für die Buchungslage oder zu günstig für das Potenzial. Beides kostet Umsatz.',
-    action: 'Datenbasierte Preisoptimierung',
-    color: '#10b981',
+    title: 'Preislogik & Auslastung',
+    description: 'Mindestaufenthalte, Preisfenster und Nachfrage-Signale bremsen Dich aus.',
+    icon: BarChart3,
+    colorClass: 'amber',
   },
-  strategy: {
-    icon: Target,
-    title: 'Strategieproblem',
-    headline: 'Fehlender Plan für nachhaltigen Erfolg',
-    description: 'Ohne klare Strategie wird oft an Symptomen statt Ursachen gearbeitet. Das führt zu Frustration.',
-    action: 'Integrierter Handlungsplan',
-    color: '#6366f1',
+  trust: {
+    title: 'Vertrauen & Differenzierung',
+    description: 'Proof, Positionierung und klare Botschaften fehlen in Deinem Auftritt.',
+    icon: ShieldCheck,
+    colorClass: 'violet',
   },
 }
 
-function SegmentedProgress({ current, total }) {
-  return (
-    <div className="progress-segments">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          className={`segment ${i < current ? 'completed' : ''} ${i === current ? 'active' : ''}`}
-        />
-      ))}
-    </div>
-  )
+const faqItems = [
+  {
+    q: 'Für wen ist der Check geeignet?',
+    a: 'Für Gastgeber mit einem oder mehreren Ferienobjekten, die mehr Auslastung und planbare Buchungen wollen.',
+  },
+  {
+    q: 'Wie lange dauert der Check?',
+    a: 'Der Schnell-Check dauert ungefähr fünf Minuten. Danach erhältst Du sofort eine priorisierte Auswertung.',
+  },
+  {
+    q: 'Brauche ich technische Vorkenntnisse?',
+    a: 'Nein. Alle Empfehlungen sind in klaren Schritten formuliert und können direkt umgesetzt werden.',
+  },
+]
+
+function scoreFromAnswers(answers) {
+  const totals = { visibility: 0, pricing: 0, trust: 0 }
+  answers.forEach((item) => {
+    if (!item) return
+    Object.keys(totals).forEach((key) => {
+      totals[key] += item?.score?.[key] ?? 0
+    })
+  })
+  return totals
 }
 
 export default function App() {
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState([])
-  const [showResults, setShowResults] = useState(false)
+  const [openFaq, setOpenFaq] = useState(0)
 
-  const currentQuestion = QUESTIONS[step]
-  const totalQuestions = QUESTIONS.length
+  const totals = useMemo(() => scoreFromAnswers(answers), [answers])
+  const ranking = useMemo(
+    () => Object.entries(totals).sort((a, b) => b[1] - a[1]),
+    [totals],
+  )
 
-  const scores = useMemo(() => {
-    const totals = { occupancy: 0, visibility: 0, offer: 0, pricing: 0, strategy: 0 }
-    answers.forEach((ans) => {
-      if (ans?.score) {
-        Object.keys(totals).forEach((key) => { totals[key] += ans.score[key] || 0 })
-      }
-    })
-    return totals
-  }, [answers])
+  const topCluster = ranking[0]?.[0] ?? 'visibility'
+  const activeCluster = clusterConfig[topCluster]
+  const currentQuestion = quizQuestions[step]
 
-  const sorted = useMemo(() => Object.entries(scores).sort((a, b) => b[1] - a[1]), [scores])
-  const diagnosis = DIAGNOSES[sorted[0]?.[0] || 'strategy']
-
-  const handleSelect = (index) => {
-    const newAnswers = [...answers]
-    newAnswers[step] = { score: currentQuestion.options[index].score }
-    setAnswers(newAnswers)
-
-    setTimeout(() => {
-      if (step < totalQuestions - 1) {
-        setStep(step + 1)
-      } else {
-        setShowResults(true)
-      }
-    }, 300)
+  const onAnswer = (index) => {
+    const next = [...answers]
+    next[step] = currentQuestion.options[index]
+    setAnswers(next)
+    if (step < quizQuestions.length - 1) {
+      setStep((prev) => prev + 1)
+    }
   }
 
-  const handleBack = () => {
-    if (step > 0) setStep(step - 1)
-  }
-
-  const handleRestart = () => {
+  const onReset = () => {
     setStep(0)
     setAnswers([])
-    setShowResults(false)
-  }
-
-  if (showResults) {
-    return (
-      <div className="ferienhaus-funnel">
-        <div className="results-container">
-          <div className="glass-card result-glass">
-            <div className="brand-badge">
-              <Sparkles size={14} />
-              <span>OSION Analyse</span>
-            </div>
-
-            <h1 className="results-title">Deine Diagnose</h1>
-
-            <div className="diagnosis-box">
-              <div className="icon-glow" style={{ color: diagnosis.color }}>
-                <div className="icon-inner">
-                  <diagnosis.icon size={28} />
-                </div>
-              </div>
-              <h2 className="diagnosis-title">{diagnosis.headline}</h2>
-              <p className="diagnosis-desc">{diagnosis.description}</p>
-              <div className="diagnosis-tag">
-                <Target size={14} />
-                <span>{diagnosis.action}</span>
-              </div>
-            </div>
-
-            <div className="score-grid">
-              {[
-                { key: 'occupancy', label: 'Auslastung', color: '#f43f5e', icon: TrendingUp },
-                { key: 'visibility', label: 'Sichtbarkeit', color: '#8b5cf6', icon: Eye },
-                { key: 'offer', label: 'Angebot', color: '#f59e0b', icon: Package },
-                { key: 'pricing', label: 'Preise', color: '#10b981', icon: DollarSign },
-                { key: 'strategy', label: 'Strategie', color: '#6366f1', icon: Target },
-              ].map(({ key, label, color, icon: Icon }) => (
-                <div
-                  key={key}
-                  className={`score-item ${sorted[0][0] === key ? 'primary' : ''}`}
-                >
-                  <div className="score-icon" style={{ background: `${color}20`, color }}>
-                    <Icon size={18} />
-                  </div>
-                  <span className="score-label">{label}</span>
-                  <span className="score-value" style={{ color }}>{scores[key]}</span>
-                </div>
-              ))}
-            </div>
-
-            <a
-              href="https://osion-solution.com/ferienhaus-optimierung"
-              className="cta-button"
-              target="_blank"
-              rel="noopener"
-            >
-              <span>Kostenlosen Handlungsplan erhalten</span>
-              <ChevronRight size={18} />
-            </a>
-
-            <button className="restart-btn" onClick={handleRestart}>
-              <ArrowLeft size={16} />
-              <span>Analyse wiederholen</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
-    <div className="ferienhaus-funnel">
-      <div className="funnel-container">
-        <div className="glass-card">
-          <div className="card-header">
-            <span className="progress-text">Frage {step + 1} von {totalQuestions}</span>
-            <button className="help-btn">?</button>
+    <main className="osion-app">
+      <section className="hero-panel">
+        <header className="topbar">
+          <div className="logo">OSI<span>ON</span></div>
+          <nav>
+            <a href="#analyse">Analyse</a>
+            <a href="#ablauf">Ablauf</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <button className="ghost-btn">Für Gastgeber</button>
+        </header>
+
+        <div className="hero-grid" id="analyse">
+          <div className="hero-copy">
+            <div className="pill">Der OSION Handlungsplan für Dein Ferienhaus</div>
+            <h1>Mehr Auslastung. Mehr Buchungen. Klare Schritte.</h1>
+            <p>Finde Buchungsbremsen, priorisiere Hebel und erhalte einen datenbasierten Fahrplan.</p>
+
+            <div className="quiz-card">
+              <div className="quiz-head">
+                <span>Frage {step + 1} von {quizQuestions.length}</span>
+                <div className="progress-track">
+                  <div style={{ width: `${((step + 1) / quizQuestions.length) * 100}%` }} />
+                </div>
+              </div>
+
+              <h3>{currentQuestion.title}</h3>
+              <div className="quiz-options">
+                {currentQuestion.options.map((option, index) => (
+                  <button key={option.label} onClick={() => onAnswer(index)}>
+                    <span>{option.label}</span>
+                    <ChevronRight size={16} />
+                  </button>
+                ))}
+              </div>
+              <div className="quiz-foot">Dauer: ca. 5 Minuten · Ergebnis sofort</div>
+            </div>
           </div>
 
-          <SegmentedProgress current={step} total={totalQuestions} />
-
-          <h1 className="question-title">{currentQuestion.title}</h1>
-
-          <div className="options-grid">
-            {currentQuestion.options.map((option, index) => (
-              <div
-                key={`${currentQuestion.id}-${index}`}
-                className="option-card"
-                onClick={() => handleSelect(index)}
-              >
-                <span className="option-label">{option.label}</span>
-                <ChevronRight className="arrow-icon" />
-              </div>
-            ))}
+          <div className="hero-result-card">
+            <div className="result-kicker">OSION HANDLUNGSPLAN</div>
+            <h2>{activeCluster.title}</h2>
+            <p>{activeCluster.description}</p>
+            <ul>
+              <li><CheckCircle2 size={16} /> Problemcluster priorisieren</li>
+              <li><CheckCircle2 size={16} /> Größten Umsatzhebel identifizieren</li>
+              <li><CheckCircle2 size={16} /> Schritt-für-Schritt umsetzen</li>
+            </ul>
+            <div className="sparkline" />
           </div>
         </div>
+      </section>
 
-        {step > 0 && (
-          <button className="back-btn" onClick={handleBack}>
-            <ArrowLeft size={16} />
-            <span>Zurück</span>
+      <section className="platforms">
+        <p>Geeignet für Gastgeber auf</p>
+        <div>Airbnb · Booking.com · FeWo-direkt · VRBO</div>
+      </section>
+
+      <section className="pain-points">
+        <h2>Warum bleiben Buchungen unter ihren Möglichkeiten?</h2>
+        <div className="three-grid">
+          <article>
+            <Gem size={22} />
+            <h3>Darstellung überzeugt nicht</h3>
+            <p>Fotos, Texte und Titel sprechen die richtigen Gäste nicht an.</p>
+          </article>
+          <article>
+            <TrendingUp size={22} />
+            <h3>Preislogik nutzt Potenziale nicht</h3>
+            <p>Preise und Regeln sind nicht synchron mit Nachfrage und Saison.</p>
+          </article>
+          <article>
+            <BadgeCheck size={22} />
+            <h3>Vertrauen und Differenzierung fehlen</h3>
+            <p>Gäste sehen keinen klaren Grund, genau bei Dir zu buchen.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="process" id="ablauf">
+        <h2>So führt Dich der Funnel zum Handlungsplan</h2>
+        <div className="steps">
+          <div><span>1</span><h4>Schnell-Check</h4><p>Kurze Fragen zur aktuellen Situation.</p></div>
+          <ArrowRight size={18} />
+          <div><span>2</span><h4>Auswertung</h4><p>Cluster und Hebel werden gewichtet.</p></div>
+          <ArrowRight size={18} />
+          <div><span>3</span><h4>Ergebnis</h4><p>Priorität + konkrete Maßnahmen.</p></div>
+          <ArrowRight size={18} />
+          <div><span>4</span><h4>Umsetzung</h4><p>Fahrplan für die nächsten 30/60/90 Tage.</p></div>
+        </div>
+      </section>
+
+      <section className="result-preview">
+        <div className="table-card">
+          <h3>Dein Ergebnis (Vorschau)</h3>
+          {ranking.map(([key, value], idx) => {
+            const item = clusterConfig[key]
+            const Icon = item.icon
+            return (
+              <div key={key} className="table-row">
+                <div className="left">
+                  <Icon size={16} />
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{item.description}</small>
+                  </div>
+                </div>
+                <div className={`priority ${item.colorClass}`}>
+                  {idx === 0 ? 'Hoch' : idx === 1 ? 'Mittel' : 'Niedrig'} ({value})
+                </div>
+              </div>
+            )
+          })}
+          <button className="link-btn" onClick={onReset}>Analyse zurücksetzen</button>
+        </div>
+        <div className="benefit-card">
+          <h3>Das bekommst Du mit dem OSION Handlungsplan</h3>
+          <ul>
+            <li><CheckCircle2 size={16} /> Du weißt, was zuerst zu tun ist.</li>
+            <li><CheckCircle2 size={16} /> Du bekommst Maßnahmen mit maximaler Wirkung.</li>
+            <li><CheckCircle2 size={16} /> Du kannst sofort in die Umsetzung gehen.</li>
+          </ul>
+          <button className="cta-btn"><Rocket size={16} /> Ergebnis ansehen</button>
+        </div>
+      </section>
+
+      <section className="faq" id="faq">
+        <h2>Häufige Fragen</h2>
+        {faqItems.map((item, idx) => (
+          <button key={item.q} className="faq-item" onClick={() => setOpenFaq(openFaq === idx ? -1 : idx)}>
+            <div>
+              <strong>{item.q}</strong>
+              {openFaq === idx && <p>{item.a}</p>}
+            </div>
+            <ChevronDown size={18} className={openFaq === idx ? 'open' : ''} />
           </button>
-        )}
-      </div>
-    </div>
+        ))}
+      </section>
+
+      <section className="footer-cta">
+        <div>
+          <h2>Starte jetzt mit dem ersten Check.</h2>
+          <p>In wenigen Minuten zu mehr Auslastung und klaren Schritten.</p>
+        </div>
+        <button><CalendarRange size={16} /> Frage 1 von 4 starten</button>
+      </section>
+    </main>
   )
 }
