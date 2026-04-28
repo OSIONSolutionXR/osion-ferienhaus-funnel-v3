@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, BarChart3, Sparkles, CheckCircle2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, BarChart3, Sparkles, CheckCircle2 } from 'lucide-react'
 
 const questions = [
   {
@@ -147,14 +147,19 @@ export default function App() {
     setSelected(index)
   }
 
-  const handleNext = () => {
-    if (selected === null) return
-    const nextAnswers = [...answers]
-    nextAnswers[step] = selected
-    setAnswers(nextAnswers)
-    setSelected(null)
-    setStep((prev) => prev + 1)
-  }
+  useEffect(() => {
+    if (isResult || selected === null) return
+
+    const timer = window.setTimeout(() => {
+      const nextAnswers = [...answers]
+      nextAnswers[step] = selected
+      setAnswers(nextAnswers)
+      setSelected(null)
+      setStep((prev) => prev + 1)
+    }, 180)
+
+    return () => window.clearTimeout(timer)
+  }, [selected, step, answers, isResult])
 
   const handleBack = () => {
     if (step === 0) return
@@ -174,7 +179,7 @@ export default function App() {
       <div className="ambient ambient-left" />
       <div className="ambient ambient-right" />
 
-      <main className="viewport-card">
+      <main className="viewport-card wide-desktop">
         {!isResult && (
           <header className="topbar">
             <div className="brand-pill">OSION Analyse</div>
@@ -188,13 +193,13 @@ export default function App() {
         )}
 
         {!isResult ? (
-          <section className="question-stage">
+          <section className="question-stage tighter-stage">
             <div className="eyebrow-row">
               <span className="eyebrow-dot" />
               <span className="eyebrow">Ferienhaus-Diagnose</span>
             </div>
 
-            <div className="hero-copy compact">
+            <div className="hero-copy compact desktop-balanced">
               <h1>Finde heraus, warum dein Ferienhaus nicht konstant genug gebucht wird.</h1>
               <p>
                 Beantworte wenige Fragen und erhalte eine erste Einschätzung, welche
@@ -202,11 +207,11 @@ export default function App() {
               </p>
             </div>
 
-            <article className="question-card">
+            <article className="question-card compact-card">
               <div className="question-chip">Frage {step + 1}</div>
               <h2>{currentQuestion.title}</h2>
 
-              <div className="option-grid">
+              <div className="option-grid compact-grid">
                 {currentQuestion.options.map((option, index) => (
                   <button
                     key={option}
@@ -223,14 +228,10 @@ export default function App() {
               </div>
             </article>
 
-            <div className="nav-row">
-              <button className="nav-btn nav-btn-ghost" onClick={handleBack} type="button" disabled={step === 0}>
+            <div className="nav-row single-back">
+              <button className="nav-btn nav-btn-ghost back-only" onClick={handleBack} type="button" disabled={step === 0}>
                 <ArrowLeft size={18} />
                 Zurück
-              </button>
-              <button className="nav-btn nav-btn-primary" onClick={handleNext} type="button" disabled={selected === null}>
-                Weiter
-                <ArrowRight size={18} />
               </button>
             </div>
           </section>
